@@ -1,15 +1,5 @@
-import json
-import requests
-from data import wilayah_df
+from data import get_info
+import sys
 
-
-def req_api(wilayah):
-    api_url = f'https://api.bmkg.go.id/publik/prakiraan-cuaca?adm4={wilayah}'
-    response = requests.get(api_url)
-    return response
-
-try:
-    result = json.loads(req_api(wilayah_df[wilayah_df['nama_wilayah'] == 'Keude Bakongan']['full_id'].values[0]).text)
-    print(result)
-except Exception as e:
-    print(e)
+get_info(sys.argv[1])
+print('Sumber: Data Terbuka BMKG')
