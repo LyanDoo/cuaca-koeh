@@ -48,21 +48,32 @@ def extract(wilayah_id):
 
 def transform(jsonfile):
     transformed_dict = {}
-    transformed_dict['datetime'] = []
+    transformed_dict['local_datetime'] = []
+    transformed_dict['analysis_datetime'] = []
     transformed_dict['suhu'] = []
     transformed_dict['kelembapan'] = []
     transformed_dict['deskripsi'] = []
     transformed_dict['kecepatan_angin'] = []
+    transformed_dict['arah_angin'] = []
+    transformed_dict['tutupan_awan'] = []
+    transformed_dict['jarak_pandang'] = []
+    transformed_dict['id_wilayah'] = []
     for day in jsonfile['data'][0]['cuaca']:
         for hour in day:
-            transformed_dict['datetime'].append(hour['local_datetime'])
+            transformed_dict['local_datetime'].append(hour['local_datetime'])
+            transformed_dict['analysis_datetime'].append(hour['analysis_date'])
             transformed_dict['suhu'].append(hour['t'])
             transformed_dict['kelembapan'].append(hour['hu'])
             transformed_dict['deskripsi'].append(hour['weather_desc'])
             transformed_dict['kecepatan_angin'].append(hour['ws']) 
+            transformed_dict['arah_angin'].append(hour['wd'])
+            transformed_dict['tutupan_awan'].append(hour['tcc'])
+            transformed_dict['jarak_pandang'].append(hour['vs_text'])
+            transformed_dict['id_wilayah'].append(jsonfile['lokasi']['adm4'])
     df = pd.DataFrame(transformed_dict)
-    df['datetime'] = pd.to_datetime(df['datetime'])
-    df.sort_values('datetime',inplace=True,ascending=False)
+    df['local_datetime'] = pd.to_datetime(df['local_datetime'])
+    df['analysis_datetime'] = pd.to_datetime(df['analysis_datetime'])
+    # df.sort_values('local_datetime',inplace=True,ascending=False)
     return df
 
 def get_info(wilayah):
@@ -72,7 +83,7 @@ def get_info(wilayah):
         result = extract(wilayah_id)
         df = transform(result).iloc[0]
         print(f"Data Cuaca Provinsi {provinsi.capitalize()}, {kota.capitalize()}, {kecamatan.capitalize()}, {nama_wilayah.capitalize()}")
-        print(f"{df['datetime'].day}-{df['datetime'].month}-{df['datetime'].year}")
+        print(f"{df['local_datetime'].day}-{df['local_datetime'].month}-{df['local_datetime'].year}")
         print(f"{df['deskripsi']}")
         print(f"Suhu : {df['suhu']}°C")
         print(f"Kelembapan Udara : {df['kelembapan']}")
@@ -80,6 +91,14 @@ def get_info(wilayah):
     except Exception as e:
         print(e)
 
+def query_cuaca(wilayah):
+    try:
+        wilayah_id = get_wilayah_id(wilayah)
+        result = extract(wilayah_id)
+        df = transform(result)
+        return df
+    except Exception as e:
+        print(e)
 
 if __name__ == '__main__':
     print(wilayah_df.sample(10))
