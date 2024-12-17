@@ -2,6 +2,8 @@ import json
 import requests
 import pandas as pd
 from wilayah import kode_wilayah, kode_kecamatan, kode_kota, kode_provinsi
+from database import load_into
+
 
 kode_wilayah_df = pd.DataFrame(kode_wilayah)
 kode_kecamatan_df = pd.DataFrame(kode_kecamatan)
@@ -19,10 +21,14 @@ wilayah_df = pd.merge(kode_wilayah_df,kode_kecamatan_df,
             .merge(kode_provinsi_df,left_on='provinsi_id',right_on='provinsi_id')\
             .rename(columns={'nama':'nama_provinsi'})
 
-wilayah_df['full_id'] = wilayah_df['provinsi_id'] + '.' \
+wilayah_df['id_wilayah'] = wilayah_df['provinsi_id'] + '.' \
                         + wilayah_df['kota_id'] + '.' \
                         + wilayah_df['kecamatan_id'] + '.' \
                         + wilayah_df['desa_id']
+
+if __name__ == '__main__':
+    print(wilayah_df.sample(10))
+
 
 def get_wilayah_id(wilayah):
     get = wilayah_df[wilayah_df['nama_wilayah'] == f'{wilayah.lower()}']
@@ -32,10 +38,10 @@ def get_wilayah_id(wilayah):
             get = wilayah_df[wilayah_df['nama_kota'] == f'{wilayah.lower()}']
             if get.empty:
                 get = wilayah_df[wilayah_df['nama_provinsi'] == f'{wilayah.lower()}']
-    return get['full_id'].values[0]
+    return get['id_wilayah'].values[0]
 
 def get_detail_wilayah(wilayah_id):
-    res_df = wilayah_df[wilayah_df['full_id'] == wilayah_id]
+    res_df = wilayah_df[wilayah_df['id_wilayah'] == wilayah_id]
     return (res_df['nama_provinsi'].values[0],\
             res_df['nama_kota'].values[0],\
             res_df['nama_kecamatan'].values[0],\
@@ -73,7 +79,6 @@ def transform(jsonfile):
     df = pd.DataFrame(transformed_dict)
     df['local_datetime'] = pd.to_datetime(df['local_datetime'])
     df['analysis_datetime'] = pd.to_datetime(df['analysis_datetime'])
-    # df.sort_values('local_datetime',inplace=True,ascending=False)
     return df
 
 def get_info(wilayah):
@@ -91,7 +96,7 @@ def get_info(wilayah):
     except Exception as e:
         print(e)
 
-def query_cuaca(wilayah):
+def extract_transform(wilayah):
     try:
         wilayah_id = get_wilayah_id(wilayah)
         result = extract(wilayah_id)
@@ -100,6 +105,17 @@ def query_cuaca(wilayah):
     except Exception as e:
         print(e)
 
-if __name__ == '__main__':
-    print(wilayah_df.sample(10))
-#     print(wilayah_df.info())
+def extract_transform_from_id(wilayah_id):
+    try:
+        result = extract(wilayah_id)
+        df = transform(result)
+        return df
+    except Exception as e:
+        print(e)
+
+def extract_transform_load(wilayah_id, engine, verbose = False):
+    print(f"Update untuk wilayah {wilayah_id} dimulai\n" if verbose else '', end='')
+    resp_df = extract_transform_from_id(wilayah_id)
+    is_updated = load_into(resp_df, engine, verbose=verbose)
+    del resp_df
+    return is_updated

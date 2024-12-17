@@ -10,7 +10,7 @@ kecamatan_pattern = r'^([0-9]{2})\.([0-9]{2})\.([0-9]{2})$'
 wilayah_pattern = r'^([0-9]{2})\.([0-9]{2})\.([0-9]{2})\.([0-9]{4})$'
 
 tingkat4_pattern = r'^[0-9]{2}\.[0-9]{2}\.[0-9]{2}\.([0-9])'
-tingkat2_pattern = r'([A-Za-z]+)' # do this on the name of city/cabupaten
+tingkat2_pattern = r'([A-Za-z]+)'
 
 kode_provinsi = {}
 kode_provinsi['provinsi_id'] = []

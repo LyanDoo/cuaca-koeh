@@ -1,6 +1,5 @@
-from data import query_cuaca
-import sys
+# import sys
+from function import update_cuaca
 
-# get_info(sys.argv[1])
-print(query_cuaca(sys.argv[1]).info())
+update_cuaca()
 print('Sumber: Data Terbuka BMKG')
